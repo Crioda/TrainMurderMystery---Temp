@@ -51,14 +51,12 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
     public void serverTick() {
         if (!TMMComponents.GAME.get(this.player.getWorld()).isRunning()) return;
         var shouldSync = false;
-        if (this.nextPreferenceTimer > 0) {
-            this.nextPreferenceTimer--;
-            if (this.nextPreferenceTimer <= 0) {
-                this.generatePreference();
-                this.preferenceText = this.currentPreference.getString();
-                this.nextPreferenceTimer = (int) (this.player.getRandom().nextFloat() * (TMMGameConstants.MAX_PREFERENCE_COOLDOWN - TMMGameConstants.MIN_PREFERENCE_COOLDOWN) + TMMGameConstants.MIN_PREFERENCE_COOLDOWN);
-                shouldSync = true;
-            }
+        this.nextPreferenceTimer--;
+        if (this.nextPreferenceTimer <= 0) {
+            this.generatePreference();
+            this.preferenceText = this.currentPreference.getString();
+            this.nextPreferenceTimer = (int) (this.player.getRandom().nextFloat() * (TMMGameConstants.MAX_PREFERENCE_COOLDOWN - TMMGameConstants.MIN_PREFERENCE_COOLDOWN) + TMMGameConstants.MIN_PREFERENCE_COOLDOWN);
+            shouldSync = true;
         }
         if (this.currentPreference.isFulfilled(this.player) || !TMMGameLoop.isPlayerAliveAndSurvival(this.player)) {
             if (!this.fulfilled) shouldSync = true;
