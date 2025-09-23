@@ -220,14 +220,14 @@ public interface TMMBlocks {
     Block WHEEL = registrar.createWithItem("wheel", new WheelBlock(AbstractBlock.Settings.copy(DARK_STEEL).nonOpaque().sounds(BlockSoundGroup.COPPER)), TMMItems.DECORATION_GROUP);
 
     // Platters
-    Block FOOD_PLATTER = registrar.createWithItem("food_platter", new PlateBlock(
+    Block FOOD_PLATTER = registrar.createWithItem("food_platter", new FoodPlatterBlock(
             AbstractBlock.Settings.copy(Blocks.WHITE_GLAZED_TERRACOTTA)
                     .nonOpaque()
                     .sounds(BlockSoundGroup.COPPER)
                     .breakInstantly()
                     .noCollision()
     ), TMMItems.DECORATION_GROUP);
-    Block DRINK_TRAY = registrar.createWithItem("drink_tray", new DrinkPlateBlock(
+    Block DRINK_TRAY = registrar.createWithItem("drink_tray", new DrinkTrayBlock(
             AbstractBlock.Settings.copy(Blocks.WHITE_GLAZED_TERRACOTTA)
                     .nonOpaque()
                     .sounds(BlockSoundGroup.CHERRY_WOOD)

@@ -333,6 +333,8 @@ public class TrainMurderMysteryModelGen extends FabricModelProvider {
         generator.registerSimpleCubeAll(TMMBlocks.BROWN_MOQUETTE);
         generator.registerSimpleCubeAll(TMMBlocks.BLUE_MOQUETTE);
         this.registerPanel(generator, TMMBlocks.BARRIER_PANEL, TMM.id("block/barrier_panel"));
+        generator.registerSimpleState(TMMBlocks.FOOD_PLATTER);
+        generator.registerNorthDefaultHorizontalRotation(TMMBlocks.DRINK_TRAY);
     }
 
     public static final Model SMALL_ITEM = item("small_item", TextureKey.LAYER0);

@@ -24,9 +24,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class PlateBlock extends BlockWithEntity {
-    public static final MapCodec<PlateBlock> CODEC = createCodec(PlateBlock::new);
-    public PlateBlock(Settings settings) {
+public class FoodPlatterBlock extends BlockWithEntity {
+    public static final MapCodec<FoodPlatterBlock> CODEC = createCodec(FoodPlatterBlock::new);
+    public FoodPlatterBlock(Settings settings) {
         super(settings);
     }
 

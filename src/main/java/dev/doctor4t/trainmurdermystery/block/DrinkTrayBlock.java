@@ -29,10 +29,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class DrinkPlateBlock extends BlockWithEntity {
-    public static final MapCodec<DrinkPlateBlock> CODEC = createCodec(DrinkPlateBlock::new);
+public class DrinkTrayBlock extends BlockWithEntity {
+    public static final MapCodec<DrinkTrayBlock> CODEC = createCodec(DrinkTrayBlock::new);
     public static final DirectionProperty FACING = HorizontalFacingBlock.FACING;
-    public DrinkPlateBlock(Settings settings) {
+    public DrinkTrayBlock(Settings settings) {
         super(settings);
         this.setDefaultState(this.stateManager.getDefaultState().with(FACING, Direction.NORTH));
     }
