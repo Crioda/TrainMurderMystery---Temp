@@ -101,15 +101,21 @@ public class DrinkTrayBlock extends BlockWithEntity {
             if (platter.isEmpty()) return ActionResult.SUCCESS;
 
             boolean hasPlatterItem = false;
-            for (ItemStack item : platter) {
-                if (player.getInventory().contains(item)) {
-                    hasPlatterItem = true;
-                    break;
+            for (ItemStack platterItem : platter) {
+                for (int i = 0; i < player.getInventory().size(); i++) {
+                    ItemStack invItem = player.getInventory().getStack(i);
+
+                    if (invItem.getItem() == platterItem.getItem()) {
+                        hasPlatterItem = true;
+                        break;
+                    }
                 }
+                if (hasPlatterItem) break;
             }
 
             if (!hasPlatterItem) {
                 ItemStack randomItem = platter.get(world.random.nextInt(platter.size())).copy();
+
                 if (blockEntity.getPoisonedItemsCount() > 0) {
                     randomItem.set(TMMDataComponentTypes.POISONED, true);
                     blockEntity.setPoisonedItemsCount(blockEntity.getPoisonedItemsCount() - 1);

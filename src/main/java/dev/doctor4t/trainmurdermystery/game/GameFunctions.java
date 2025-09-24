@@ -1,8 +1,6 @@
 package dev.doctor4t.trainmurdermystery.game;
 
 import com.google.common.collect.Lists;
-import com.mojang.brigadier.exceptions.Dynamic2CommandExceptionType;
-import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.cca.*;
 import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
@@ -40,7 +38,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 public class GameFunctions {
@@ -129,10 +126,8 @@ public class GameFunctions {
             playerPool.removeFirst();
         }
 
-        List<ServerPlayerEntity> nonHitmen = new ArrayList<>(playerPool);
-
         // clear items, clear previous game data
-        for (ServerPlayerEntity serverPlayerEntity : nonHitmen) {
+        for (ServerPlayerEntity serverPlayerEntity : playerPool) {
             serverPlayerEntity.getInventory().clear();
             PlayerMoodComponent.KEY.get(serverPlayerEntity).reset();
             PlayerStoreComponent.KEY.get(serverPlayerEntity).reset();
@@ -140,32 +135,13 @@ public class GameFunctions {
         }
         gameComponent.resetHitmanList();
 
-        // select hitmen
-        int hitmanCount = (int) Math.floor(nonHitmen.size() * .2f);
-        Collections.shuffle(nonHitmen);
-        for (int i = 0; i < hitmanCount; i++) {
-            ServerPlayerEntity player = nonHitmen.getFirst();
-            nonHitmen.removeFirst();
-            player.giveItemStack(new ItemStack(TMMItems.KNIFE));
-            player.giveItemStack(new ItemStack(TMMItems.LOCKPICK));
-
-            ItemStack letter = new ItemStack(TMMItems.LETTER);
-            letter.set(DataComponentTypes.ITEM_NAME, Text.translatable(letter.getTranslationKey() + ".instructions"));
-            player.giveItemStack(letter);
-
-            gameComponent.addHitman(player);
-        }
+        var roleSelector = ScoreboardRoleSelectorComponent.KEY.get(world.getScoreboard());
+        var hitmanCount = (int) Math.floor(playerPool.size() * .2f);
+        roleSelector.assignHitmen(world, gameComponent, playerPool, hitmanCount);
+        roleSelector.assignVigilantes(world, gameComponent, playerPool, hitmanCount);
 
         // set the kill left count as the percentage of players that are not hitmen that need to be killed in order to achieve a win
-        gameComponent.setKillsLeft((int) (nonHitmen.size() * TMMGameConstants.KILL_COUNT_PERCENTAGE));
-
-        // give the guns to random players
-        Collections.shuffle(nonHitmen);
-        for (int i = 0; i < hitmanCount; i++) {
-            ServerPlayerEntity player = nonHitmen.getFirst();
-            nonHitmen.removeFirst();
-            player.giveItemStack(new ItemStack(TMMItems.REVOLVER));
-        }
+        gameComponent.setKillsLeft((int) ((playerPool.size() - hitmanCount) * TMMGameConstants.KILL_COUNT_PERCENTAGE));
 
         // select rooms
         Collections.shuffle(playerPool);

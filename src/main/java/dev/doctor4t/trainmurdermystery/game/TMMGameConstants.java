@@ -6,11 +6,9 @@ import dev.doctor4t.trainmurdermystery.util.ShopEntry;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
-import dev.doctor4t.trainmurdermystery.util.Carriage;
 import net.minecraft.util.math.Box;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -42,23 +40,13 @@ public interface TMMGameConstants {
     Box TRAIN_LOCATION = BACKUP_TRAIN_LOCATION.offset(0, 55, 0);
 
     // Task Variables
-    List<Carriage> CARRIAGES = new ArrayList<>(List.of(
-            new Carriage(List.of(
-                    new Box(-17, 121, -533, 3, 125, -539),
-                    new Box(31, 121, -533, 51, 125, -539)
-            ), "Restaurant"),
-            new Carriage(List.of(
-                    new Box(7, 121, -539, 27, 125, -533)
-            ), "Bar"),
-            new Carriage(List.of(
-                    new Box(127, 121, -539, 147, 125, -533)
-            ), "Library")
-    ));
-    float MOOD_DRAIN = 1f / getInTicks(1, 0);
-    float MOOD_GAIN = 1f / getInTicks(0, 15);
-    int MIN_PREFERENCE_COOLDOWN = getInTicks(0, 30);
-    int MAX_PREFERENCE_COOLDOWN = getInTicks(0, 30);
+    float MOOD_GAIN = 0.5f;
+    float MOOD_DRAIN = 1f / getInTicks(3, 0);
     int TIME_TO_FIRST_TASK = getInTicks(0, 10);
+    int MIN_TASK_COOLDOWN = getInTicks(0, 20);
+    int MAX_TASK_COOLDOWN = getInTicks(0, 50);
+    int SLEEP_TASK_DURATION = getInTicks(0, 8);
+    int OUTSIDE_TASK_DURATION = getInTicks(0, 8);
 
     // Shop Variables
     List<ShopEntry> SHOP_ENTRIES = List.of(

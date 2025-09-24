@@ -1,17 +1,16 @@
 package dev.doctor4t.trainmurdermystery;
 
 import dev.doctor4t.trainmurdermystery.command.*;
-import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import dev.doctor4t.trainmurdermystery.index.*;
-import dev.doctor4t.trainmurdermystery.util.KnifeStabPayload;
-import dev.doctor4t.trainmurdermystery.util.ShootMuzzleS2CPayload;
-import dev.doctor4t.trainmurdermystery.util.StoreBuyPayload;
+import dev.doctor4t.trainmurdermystery.util.*;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.entity.Entity;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,8 +45,37 @@ public class TMM implements ModInitializer {
         PayloadTypeRegistry.playS2C().register(ShootMuzzleS2CPayload.ID, ShootMuzzleS2CPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(KnifeStabPayload.ID, KnifeStabPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(StoreBuyPayload.ID, StoreBuyPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(PoisonUtils.PoisonOverlayPayload.ID, PoisonUtils.PoisonOverlayPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(KnifeStabPayload.ID, new KnifeStabPayload.Receiver());
         ServerPlayNetworking.registerGlobalReceiver(StoreBuyPayload.ID, new StoreBuyPayload.Receiver());
+
+        Scheduler.init();
+    }
+
+    public static boolean isSkyVisibleAdjacent(@NotNull Entity player) {
+        var mutable = new BlockPos.Mutable();
+        var playerPos = BlockPos.ofFloored(player.getEyePos());
+        for (var x = -1; x <= 1; x+=2) {
+            for (var z = -1; z <= 1; z+=2) {
+                mutable.set(playerPos.getX() + x, playerPos.getY(), playerPos.getZ() + z);
+                if (player.getWorld().isSkyVisible(mutable)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean isExposedToWind(@NotNull Entity player) {
+        var mutable = new BlockPos.Mutable();
+        var playerPos = BlockPos.ofFloored(player.getEyePos());
+        for (var x = 0; x <= 10; x++) {
+            mutable.set(playerPos.getX() - x, player.getEyePos().getY(), playerPos.getZ());
+            if (!player.getWorld().isSkyVisible(mutable)) {
+                return false;
+            }
+        }
+        return true;
     }
 }
 

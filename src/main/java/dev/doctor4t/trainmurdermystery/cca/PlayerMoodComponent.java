@@ -1,29 +1,36 @@
 package dev.doctor4t.trainmurdermystery.cca;
 
 import dev.doctor4t.trainmurdermystery.TMM;
+import dev.doctor4t.trainmurdermystery.client.TMMClient;
 import dev.doctor4t.trainmurdermystery.game.TMMGameConstants;
-import dev.doctor4t.trainmurdermystery.game.GameFunctions;
-import dev.doctor4t.trainmurdermystery.util.Carriage;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.Identifier;
+import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistry;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 import org.ladysnake.cca.api.v3.component.tick.ClientTickingComponent;
 import org.ladysnake.cca.api.v3.component.tick.ServerTickingComponent;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
+import static dev.doctor4t.trainmurdermystery.TMM.isSkyVisibleAdjacent;
+
 public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingComponent, ClientTickingComponent {
-    public static final Identifier MOOD = TMM.id("mood");
-    public static final ComponentKey<PlayerMoodComponent> KEY = ComponentRegistry.getOrCreate(MOOD, PlayerMoodComponent.class);
+    public static final ComponentKey<PlayerMoodComponent> KEY = ComponentRegistry.getOrCreate(TMM.id("mood"), PlayerMoodComponent.class);
     private final PlayerEntity player;
-    private TrainPreference currentPreference = TrainPreference.TRUE;
-    private int nextPreferenceTimer = 0;
-    public float mood = 1f;
-    public boolean fulfilled = false;
-    public String preferenceText = "";
+    public final Map<Task, TrainTask> tasks = new HashMap<>();
+    public final Map<Task, Integer> timesGotten = new HashMap<>();
+    private int nextTaskTimer = 0;
+    private float mood = 1f;
 
     public PlayerMoodComponent(PlayerEntity player) {
         this.player = player;
@@ -34,150 +41,259 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
     }
 
     public void reset() {
-        this.currentPreference = TrainPreference.TRUE;
-        this.nextPreferenceTimer = TMMGameConstants.TIME_TO_FIRST_TASK;
-        this.fulfilled = false;
+        this.tasks.clear();
+        this.timesGotten.clear();
+        this.nextTaskTimer = TMMGameConstants.TIME_TO_FIRST_TASK;
         this.setMood(1f);
         this.sync();
     }
 
     @Override
     public void clientTick() {
-        if (!TMMComponents.GAME.get(this.player.getWorld()).isRunning()) return;
-        this.tickMood();
+        if (!TMMComponents.GAME.get(this.player.getWorld()).isRunning() || !TMMClient.isPlayerAliveAndInSurvival()) return;
+        if (!this.tasks.isEmpty()) this.setMood(this.mood - this.tasks.size() * TMMGameConstants.MOOD_DRAIN);
     }
 
     @Override
     public void serverTick() {
-        if (!TMMComponents.GAME.get(this.player.getWorld()).isRunning()) return;
+        if (!TMMComponents.GAME.get(this.player.getWorld()).isRunning() || !TMMClient.isPlayerAliveAndInSurvival()) return;
+        if (!this.tasks.isEmpty()) this.setMood(this.mood - this.tasks.size() * TMMGameConstants.MOOD_DRAIN);
         var shouldSync = false;
-        this.nextPreferenceTimer--;
-        if (this.nextPreferenceTimer <= 0) {
-            this.generatePreference();
-            this.preferenceText = this.currentPreference.getString();
-            this.nextPreferenceTimer = (int) (this.player.getRandom().nextFloat() * (TMMGameConstants.MAX_PREFERENCE_COOLDOWN - TMMGameConstants.MIN_PREFERENCE_COOLDOWN) + TMMGameConstants.MIN_PREFERENCE_COOLDOWN);
+        this.nextTaskTimer--;
+        if (this.nextTaskTimer <= 0) {
+            var task = this.generateTask();
+            if (task != null) {
+                this.tasks.put(task.getType(), task);
+                this.timesGotten.putIfAbsent(task.getType(), 1);
+                this.timesGotten.put(task.getType(), this.timesGotten.get(task.getType()) + 1);
+            }
+            this.nextTaskTimer = (int) (this.player.getRandom().nextFloat() * (TMMGameConstants.MAX_TASK_COOLDOWN - TMMGameConstants.MIN_TASK_COOLDOWN) + TMMGameConstants.MIN_TASK_COOLDOWN);
+            this.nextTaskTimer = Math.max(this.nextTaskTimer / 10, 2);
             shouldSync = true;
         }
-        if (this.currentPreference.isFulfilled(this.player) || !GameFunctions.isPlayerAliveAndSurvival(this.player)) {
-            if (!this.fulfilled) shouldSync = true;
-            this.fulfilled = true;
-        } else {
-            if (this.fulfilled) shouldSync = true;
-            this.fulfilled = false;
+        var removals = new ArrayList<Task>();
+        for (var task : this.tasks.values()) {
+            task.tick(this.player);
+            if (task.isFulfilled(this.player)) {
+                removals.add(task.getType());
+                this.setMood(this.mood + TMMGameConstants.MOOD_GAIN);
+                shouldSync = true;
+            }
         }
-        this.tickMood();
+        for (var task : removals) this.tasks.remove(task);
         if (shouldSync) this.sync();
     }
 
-    public void tickMood() {
-        if (this.fulfilled) {
-            this.setMood(this.mood + TMMGameConstants.MOOD_GAIN);
-        } else {
-            this.setMood(this.mood - TMMGameConstants.MOOD_DRAIN);
+    private @Nullable TrainTask generateTask() {
+        var map = new HashMap<Task, Float>();
+        var total = 0f;
+        for (var task : Task.values()) {
+            if (this.tasks.containsKey(task)) continue;
+            var weight = 1f / this.timesGotten.getOrDefault(task, 1);
+            map.put(task, weight);
+            total += weight;
         }
+        var random = this.player.getRandom().nextFloat() * total;
+        for (var entry : map.entrySet()) {
+            random -= entry.getValue();
+            if (random <= 0) {
+                return switch (entry.getKey()) {
+                    case SLEEP -> new SleepTask(TMMGameConstants.SLEEP_TASK_DURATION);
+                    case OUTSIDE -> new OutsideTask(TMMGameConstants.OUTSIDE_TASK_DURATION);
+                    case EAT -> new EatTask();
+                    case DRINK -> new DrinkTask();
+                };
+            }
+        }
+        return null;
+    }
+
+    public float getMood() {
+        return this.mood;
     }
 
     public void setMood(float mood) {
         this.mood = Math.clamp(mood, 0, 1);
     }
 
-    private void generatePreference() {
-        if (!TMMComponents.GAME.get(this.player.getWorld()).isCivilian(this.player)) {
-            this.currentPreference = TrainPreference.TRUE;
-            return;
-        }
+    public void eatFood() {
+        if (this.tasks.get(Task.EAT) instanceof EatTask eatTask) eatTask.fulfilled = true;
+    }
 
-        var random = this.player.getRandom();
-
-        // 5% chance to be happy with anything
-        if (random.nextFloat() < 0.05f) {
-            this.currentPreference = TrainPreference.TRUE;
-            return;
-        }
-
-        // 30% chance to want to be outside
-        if (random.nextFloat() < 0.3f) {
-            this.currentPreference = TrainPreference.OUTSIDE;
-            return;
-        }
-
-        // 10% chance to be tired
-        if (random.nextFloat() < 0.1f) {
-            this.currentPreference = TrainPreference.SLEEP;
-            return;
-        }
-
-        var carriages = TMMGameConstants.CARRIAGES;
-        if (carriages.isEmpty()) {
-            this.currentPreference = TrainPreference.TRUE;
-        } else {
-            this.currentPreference = new CarriageTrainPreference(carriages.get(this.player.getRandom().nextInt(carriages.size())));
-        }
+    public void drinkCocktail() {
+        if (this.tasks.get(Task.DRINK) instanceof DrinkTask drinkTask) drinkTask.fulfilled = true;
     }
 
     @Override
     public void writeToNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-        tag.putFloat("Mood", this.mood);
-        tag.putBoolean("Fulfilled", this.fulfilled);
-        tag.putString("Preference", this.preferenceText);
+        tag.putFloat("mood", this.mood);
+        var tasks = new NbtList();
+        for (var task : this.tasks.values()) tasks.add(task.toNbt());
+        tag.put("tasks", tasks);
     }
 
     @Override
     public void readFromNbt(@NotNull NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-        this.mood = tag.contains("Mood") ? tag.getFloat("Mood") : 1f;
-        this.fulfilled = tag.contains("Fulfilled") && tag.getBoolean("Fulfilled");
-        this.preferenceText = tag.contains("Preference") ? tag.getString("Preference") : "";
+        this.mood = tag.contains("mood", NbtElement.FLOAT_TYPE) ? tag.getFloat("mood") : 1f;
+        this.tasks.clear();
+        if (tag.contains("tasks", NbtElement.LIST_TYPE)) {
+            for (var element : tag.getList("tasks", NbtElement.COMPOUND_TYPE)) {
+                if (element instanceof NbtCompound compound && compound.contains("type")) {
+                    var type = compound.getInt("type");
+                    if (type < 0 || type >= Task.values().length) continue;
+                    var typeEnum = Task.values()[type];
+                    this.tasks.put(typeEnum, typeEnum.setFunction.apply(compound));
+                }
+            }
+        }
     }
 
-    public interface TrainPreference {
-        TrainPreference TRUE = new TrainPreference() {
-            @Override
-            public boolean isFulfilled(@NotNull PlayerEntity player) {
-                return true;
-            }
+    public enum Task {
+        SLEEP(nbt -> new SleepTask(nbt.getInt("timer"))),
+        OUTSIDE(nbt -> new OutsideTask(nbt.getInt("timer"))),
+        EAT(nbt -> new EatTask()),
+        DRINK(nbt -> new DrinkTask());
 
-            @Override
-            public @NotNull String getString() {
-                return "";
-            }
-        };
-        TrainPreference OUTSIDE = new TrainPreference() {
-            @Override
-            public boolean isFulfilled(@NotNull PlayerEntity player) {
-                return player.getWorld().isSkyVisible(player.getBlockPos());
-            }
+        public final @NotNull Function<NbtCompound, TrainTask> setFunction;
 
-            @Override
-            public @NotNull String getString() {
-                return "You should get some fresh air";
-            }
-        };
-        TrainPreference SLEEP = new TrainPreference() {
-            @Override
-            public boolean isFulfilled(@NotNull PlayerEntity player) {
-                return player.isSleeping();
-            }
+        Task(@NotNull Function<NbtCompound, TrainTask> function) {
+            this.setFunction = function;
+        }
+    }
 
-            @Override
-            public @NotNull String getString() {
-                return "You should get some sleep";
-            }
-        };
+    public static class SleepTask implements TrainTask {
+        private int timer;
+
+        public SleepTask(int time) {
+            this.timer = time;
+        }
+
+        @Override
+        public void tick(@NotNull PlayerEntity player) {
+            if (player.isSleeping() && this.timer > 0) this.timer--;
+        }
+
+        @Override
+        public boolean isFulfilled(@NotNull PlayerEntity player) {
+            return this.timer <= 0;
+        }
+
+        @Override
+        public Text getText() {
+            return Text.literal("You should get some sleep");
+        }
+
+        @Override
+        public Task getType() {
+            return Task.SLEEP;
+        }
+
+        @Override
+        public NbtCompound toNbt() {
+            var nbt = new NbtCompound();
+            nbt.putInt("type", Task.SLEEP.ordinal());
+            nbt.putInt("timer", this.timer);
+            return nbt;
+        }
+    }
+
+    public static class OutsideTask implements TrainTask {
+        private int timer;
+
+        public OutsideTask(int time) {
+            this.timer = time;
+        }
+
+        @Override
+        public void tick(@NotNull PlayerEntity player) {
+            if (isSkyVisibleAdjacent(player) && this.timer > 0) this.timer--;
+        }
+
+        @Override
+        public boolean isFulfilled(@NotNull PlayerEntity player) {
+            return this.timer <= 0;
+        }
+
+        @Override
+        public Text getText() {
+            return Text.literal("You should get some fresh air");
+        }
+
+        @Override
+        public Task getType() {
+            return Task.OUTSIDE;
+        }
+
+        @Override
+        public NbtCompound toNbt() {
+            var nbt = new NbtCompound();
+            nbt.putInt("type", Task.OUTSIDE.ordinal());
+            nbt.putInt("timer", this.timer);
+            return nbt;
+        }
+    }
+
+    public static class EatTask implements TrainTask {
+        public boolean fulfilled = false;
+
+        @Override
+        public boolean isFulfilled(@NotNull PlayerEntity player) {
+            return this.fulfilled;
+        }
+
+        @Override
+        public Text getText() {
+            return Text.literal("You should get something to eat");
+        }
+
+        @Override
+        public Task getType() {
+            return Task.EAT;
+        }
+
+        @Override
+        public NbtCompound toNbt() {
+            var nbt = new NbtCompound();
+            nbt.putInt("type", Task.EAT.ordinal());
+            return nbt;
+        }
+    }
+
+    public static class DrinkTask implements TrainTask {
+        public boolean fulfilled = false;
+
+        @Override
+        public boolean isFulfilled(@NotNull PlayerEntity player) {
+            return this.fulfilled;
+        }
+
+        @Override
+        public @NotNull Text getText() {
+            return Text.literal("You should get something to drink");
+        }
+
+        @Override
+        public Task getType() {
+            return Task.DRINK;
+        }
+
+        @Override
+        public NbtCompound toNbt() {
+            var nbt = new NbtCompound();
+            nbt.putInt("type", Task.DRINK.ordinal());
+            return nbt;
+        }
+    }
+
+    public interface TrainTask {
+        default void tick(@NotNull PlayerEntity player) {}
 
         boolean isFulfilled(PlayerEntity player);
 
-        String getString();
-    }
+        Text getText();
 
-    public record CarriageTrainPreference(Carriage carriage) implements TrainPreference {
-        @Override
-        public boolean isFulfilled(@NotNull PlayerEntity player) {
-            return this.carriage.areas().stream().anyMatch(box -> box.contains(player.getPos()));
-        }
+        Task getType();
 
-        @Override
-        public @NotNull String getString() {
-            return "You feel like visiting %s %s carriage".formatted(this.carriage.areas().size() == 1 ? "the" : "a", this.carriage.name());
-        }
+        NbtCompound toNbt();
     }
 }

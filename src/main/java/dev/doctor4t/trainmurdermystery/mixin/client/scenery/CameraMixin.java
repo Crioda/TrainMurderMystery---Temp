@@ -1,5 +1,6 @@
 package dev.doctor4t.trainmurdermystery.mixin.client.scenery;
 
+import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.client.TMMClient;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -39,11 +40,11 @@ public class CameraMixin {
             float amplitude = .0025f;
             float strength = 0.5f;
 
-            if (TMMClient.isSkyVisibleAdjacent(player)) {
+            if (TMM.isSkyVisibleAdjacent(player)) {
                 amplitude = .01f;
                 strength = 1f;
 
-                if (TMMClient.isExposedToWind(player)) {
+                if (TMM.isExposedToWind(player)) {
                     float yawOffset = 1.5f* randomizeOffset(10);
                     float pitchOffset =  1.5f*randomizeOffset(-10);
                     camera.setRotation(camera.getYaw() + yawOffset, camera.getPitch() + pitchOffset);

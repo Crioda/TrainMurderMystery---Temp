@@ -40,7 +40,8 @@
 			"trainmurdermystery:mood",
 			"trainmurdermystery:store",
 			"trainmurdermystery:poison",
-			"trainmurdermystery:blackout"
+			"trainmurdermystery:blackout",
+			"trainmurdermystery:rolecounter"
 		]
 	},
 	"depends": {

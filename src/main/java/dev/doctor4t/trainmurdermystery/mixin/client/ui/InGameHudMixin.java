@@ -39,7 +39,7 @@ public class InGameHudMixin {
         var player = this.client.player;
         if (player == null) return;
         var renderer = MinecraftClient.getInstance().textRenderer;
-        if (TMMClient.isPlayerAliveAndInSurvival()) MoodRenderer.renderHud(player, renderer, context, tickCounter);
+        MoodRenderer.renderHud(player, renderer, context, tickCounter);
         RoleNameRenderer.renderHud(renderer, player, context, tickCounter);
         if (MinecraftClient.getInstance().currentScreen == null) StoreRenderer.renderHud(renderer, player, context, tickCounter.getTickDelta(true));
     }

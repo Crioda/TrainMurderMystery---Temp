@@ -7,10 +7,9 @@ import dev.doctor4t.ratatouille.client.util.ambience.BackgroundAmbience;
 import dev.doctor4t.ratatouille.client.util.ambience.BlockEntityAmbience;
 import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.block_entity.SprinklerBlockEntity;
-import dev.doctor4t.trainmurdermystery.cca.TMMComponents;
 import dev.doctor4t.trainmurdermystery.cca.GameWorldComponent;
+import dev.doctor4t.trainmurdermystery.cca.TMMComponents;
 import dev.doctor4t.trainmurdermystery.cca.TrainWorldComponent;
-import dev.doctor4t.trainmurdermystery.client.gui.MoodRenderer;
 import dev.doctor4t.trainmurdermystery.client.gui.StoreRenderer;
 import dev.doctor4t.trainmurdermystery.client.model.TrainMurderMysteryEntityModelLayers;
 import dev.doctor4t.trainmurdermystery.client.render.block_entity.DrinkPlateBlockEntityRenderer;
@@ -18,10 +17,11 @@ import dev.doctor4t.trainmurdermystery.client.render.block_entity.PlateBlockEnti
 import dev.doctor4t.trainmurdermystery.client.render.block_entity.SmallDoorBlockEntityRenderer;
 import dev.doctor4t.trainmurdermystery.client.render.block_entity.WheelBlockEntityRenderer;
 import dev.doctor4t.trainmurdermystery.client.util.TMMItemTooltips;
-import dev.doctor4t.trainmurdermystery.game.TMMGameConstants;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
+import dev.doctor4t.trainmurdermystery.game.TMMGameConstants;
 import dev.doctor4t.trainmurdermystery.index.*;
 import dev.doctor4t.trainmurdermystery.util.HandParticleManager;
+import dev.doctor4t.trainmurdermystery.util.PoisonUtils;
 import dev.doctor4t.trainmurdermystery.util.ShootMuzzleS2CPayload;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.fabricmc.api.ClientModInitializer;
@@ -34,7 +34,6 @@ import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.client.option.CloudRenderMode;
 import net.minecraft.client.option.KeyBinding;
@@ -49,7 +48,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.Registries;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import org.lwjgl.glfw.GLFW;
@@ -69,7 +67,7 @@ public class TMMClient implements ClientModInitializer {
     public static KeyBinding instinctKeybind;
 
     public static boolean shouldDisableHudAndDebug() {
-        MinecraftClient client = MinecraftClient.getInstance();
+        var client = MinecraftClient.getInstance();
         return (client == null || (client.player != null && !client.player.isCreative() && !client.player.isSpectator()));
     }
 
@@ -164,16 +162,14 @@ public class TMMClient implements ClientModInitializer {
         );
 
         // Ambience
-        AmbienceUtil.registerBackgroundAmbience(new BackgroundAmbience(TMMSounds.AMBIENT_TRAIN_INSIDE, player -> isTrainMoving() && !isSkyVisibleAdjacent(player), 20));
-        AmbienceUtil.registerBackgroundAmbience(new BackgroundAmbience(TMMSounds.AMBIENT_TRAIN_OUTSIDE, player -> isTrainMoving() && isSkyVisibleAdjacent(player), 20));
+        AmbienceUtil.registerBackgroundAmbience(new BackgroundAmbience(TMMSounds.AMBIENT_TRAIN_INSIDE, player -> isTrainMoving() && !TMM.isSkyVisibleAdjacent(player), 20));
+        AmbienceUtil.registerBackgroundAmbience(new BackgroundAmbience(TMMSounds.AMBIENT_TRAIN_OUTSIDE, player -> isTrainMoving() && TMM.isSkyVisibleAdjacent(player), 20));
         AmbienceUtil.registerBlockEntityAmbience(TMMBlockEntities.SPRINKLER, new BlockEntityAmbience(TMMSounds.BLOCK_SPRINKLER_RUN, 0.5f, blockEntity -> blockEntity instanceof SprinklerBlockEntity sprinklerBlockEntity && sprinklerBlockEntity.isPowered(), 10));
 
         // Caching components
         ClientTickEvents.START_WORLD_TICK.register(clientWorld -> {
             gameComponent = TMMComponents.GAME.get(clientWorld);
             trainComponent = TMMComponents.TRAIN.get(clientWorld);
-            var player = MinecraftClient.getInstance().player;
-            if (player != null && player.age % 80 == 0) MoodRenderer.arrowProgress = 0f;
         });
 
         // Lock options
@@ -227,6 +223,7 @@ public class TMMClient implements ClientModInitializer {
         });
 
         ClientPlayNetworking.registerGlobalReceiver(ShootMuzzleS2CPayload.ID, new ShootMuzzleS2CPayload.Receiver());
+        ClientPlayNetworking.registerGlobalReceiver(PoisonUtils.PoisonOverlayPayload.ID, new PoisonUtils.PoisonOverlayPayload.Receiver());
 
         // Instinct keybind
         instinctKeybind = KeyBindingHelper.registerKeyBinding(new KeyBinding(
@@ -235,35 +232,6 @@ public class TMMClient implements ClientModInitializer {
                 GLFW.GLFW_KEY_LEFT_ALT,
                 "category."+ TMM.MOD_ID+".keybinds"
         ));
-    }
-
-    public static boolean isSkyVisibleAdjacent(ClientPlayerEntity player) {
-        BlockPos.Mutable mutable = new BlockPos.Mutable();
-        BlockPos playerPos = BlockPos.ofFloored(player.getEyePos());
-        for (int x = -1; x <= 1; x+=2) {
-            for (int z = -1; z <= 1; z+=2) {
-                mutable.set(playerPos.getX() + x, playerPos.getY(), playerPos.getZ() + z);
-                if (player.clientWorld.isSkyVisible(mutable)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    public static boolean isExposedToWind(ClientPlayerEntity player) {
-        BlockPos.Mutable mutable = new BlockPos.Mutable();
-        BlockPos playerPos = BlockPos.ofFloored(player.getEyePos());
-
-        for (int x = 0; x <= 10; x++) {
-            mutable.set(playerPos.getX() - x, player.getEyePos().getY(), playerPos.getZ());
-            if (!player.clientWorld.isSkyVisible(mutable)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     public static float getTrainSpeed() {
