@@ -85,27 +85,42 @@ public class TMM implements ModInitializer {
 }
 
 // TORECORD: Fixing the mood system
-// TODO: Better tasks: mood goes down gradually, completing tasks is a single action to bring it back up
+// TORECORD: Better tasks: mood goes down gradually, completing tasks is a single action to bring it back up
 //  (new task system is more meant to make players vulnerable to the hitman in a different way from splitting them up)
-// TODO: - Get a snack from restaurant task (food platter block + food items)
-// TODO: - Get a drink from the bar task (drink tray block + custom drink items)
-// TODO: - Sleeping task requiring you to sleep for 8s
-// TODO: - Get some fresh air reduced to going walking outside for 8s
+// TORECORD: - Get a snack from restaurant task (food platter block + food items)
+// TORECORD: - Get a drink from the bar task (drink tray block + custom drink items)
+// TORECORD: - Sleeping task requiring you to sleep for 8s
+// TORECORD: - Get some fresh air reduced to going walking outside for 8s
 // TODO: - Change mood down effect from speed to: (to prevent players being able to innocent each other on an easily observable change)
 // TODO:    - Not seeing bodies at mid mood + a little more shake
-// TODO:    - Randomly seeing players as psycho + even more shake
+// TODO:    - Randomly seeing players as psycho + random items in hands + even more shake + blinking
+
+// TORECORD: Fixing the detective
+// TORECORD: New name display system to allow anyone to know player's names
+// TORECORD: Remove revolver bullet count but make detectives drop the gun on innocent kill
+//              to prevent detectives gunning down people and giving more weight to the choice as well as offer a chance to other players to make decisions
+//              also sets mood to 0 as extra punishment
+//              Cannot be picked up by: The person who shot wrongly or killers, if you already have a revolver
+//              but then can't people force the hitman to try and pick up the gun to see if they are one? No I'll explain why later
+// TORECORD: Revolver also has a really nice indicator if you are going to hit your target
+// TORECORD: Make the detective drop the gun on killed (that the hitman cannot pick up, to prevent soft locking)
+// done: Remove body bags so make player corpses turn into skeletons after some time (since the detective role is no longer really a role and depends on who carries the gun, it's hard to keep the body bag item)
 
 // TORECORD: Fixing the hitman
+// TORECORD: Mood system shows up for the hitman as well, custom mood icon indicating no effect, but here to suggest how to play along and fake tasks
 // TORECORD: Remove target system and make the win condition a kill count, turning him into a psycho
-// TORECORD: New name display system to allow anyone to know player's names, displays "psycho cohort" for other psychos, and instinct now shows other psychos instead of targets, game recognizes game
-// TORECORD: Hitman item shop
+// TORECORD: New name display shows "psycho cohort" for other psychos, and instinct now shows other psychos instead of targets, game recognizes game, allowing them to scheme together
 // TORECORD: Fixing the knife (now with a kill indicator)
-// TORECORD: New name system shows who else is the hitman allowing them to scheme together
+// TORECORD: Hitman item shop
 // TODO: - Explosive for clumped up people (foils the grouping up cheese)
 // TORECORD: - Poison (poisons the next food or drink item)
 // TORECORD: - Scorpion (poisons the next person sleeping in the bed)
 // TORECORD: Getting food poisoned and then scorpion poisoned lowers the timer
-// TODO: - Gun with one bullet (allows the hitman to potentially pass as a detective / passenger with a gun on top of giving a ranged option)
+// TODO: - Gun
+//          allows the hitman to potentially pass as a detective / passenger with a gun on top of giving a ranged option
+//          double edged sword because just like for other passengers, you drop it when you shoot an innocent, which means that there is now one more gun in circulation people can use against you
+//          counter to people trying to make you pick up the gun and confirm you are the hitman because remember you can't pick it up if you already have a revolver
+//              so the killer can buy it and bluff that they already have one and use it as a justification
 // TORECORD: - Crowbar (perma opening a door should be a hitman ability, allows for creative kills where you can push off players from train doors, as well as allowing passengers to use the exterior in order to give plausible deniability to hitmen using it to relocate)
 // TORECORD: - Psycho mode (wanted to have an anonymous killer originally for the horror element, this also allows the hitman to go crazy how some wanted to)
 //              Ambience can be heard by all players, so you know when to run. Also gives a use to rooms as you can hide in them
@@ -115,14 +130,10 @@ public class TMM implements ModInitializer {
 // TODO: - Firecracker (luring people, shooting the gun in spectator often led to people rushing in from curiosity, allowing the hitman to manipulate players)
 // TODO: - Note (allows the hitman to leave messages, fun for encouraging the roleplay aspect)
 
-// TORECORD: Fixing the detective
-// TORECORD: Remove revolver bullet count but make detectives drop the gun on innocent kill (to prevent detectives gunning down people and giving more weight to the choice as well as offer a chance to other players to make decisions, also sets mood to 0 as extra punishment)
-// TORECORD: Make the detective drop the gun on killed (that the hitman cannot pick up, to prevent soft locking)
-// done: Remove body bags so make player corpses turn into skeletons after some time (since the detective role is no longer really a role and depends on who carries the gun, it's hard to keep the body bag item)
-
 // TORECORD: Fixing the map
 // TODO: Rearrange the train cars to prevent all POIs being separated by all the sleeping cars
 // TODO: Add light barrier blocks to the whole train
+// TODO: Add barrier panel blocks to the lobby
 
 // TORECORD: Polish
 // TODO: Train chimney smoke + ringable horn, triggers game start in lobby and end of game

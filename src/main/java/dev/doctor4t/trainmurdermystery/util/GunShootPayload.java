@@ -9,6 +9,7 @@ import dev.doctor4t.trainmurdermystery.index.TMMItems;
 import dev.doctor4t.trainmurdermystery.index.TMMSounds;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -37,7 +38,9 @@ public record GunShootPayload(int target) implements CustomPayload {
 					PlayerMoodComponent.KEY.get(player).setMood(0);
 					Scheduler.schedule(() -> {
 						player.getInventory().remove((s) -> s.isOf(TMMItems.REVOLVER), 1, player.getInventory());
-						player.dropItem(TMMItems.REVOLVER.getDefaultStack(), false, false);
+						ItemEntity item = player.dropItem(TMMItems.REVOLVER.getDefaultStack(), false, false);
+						item.setPickupDelay(10);
+						item.setThrower(player);
 						ServerPlayNetworking.send(player, new GunDropPayload());
 						}, 4
 					);
