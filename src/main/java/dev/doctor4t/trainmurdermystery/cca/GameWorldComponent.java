@@ -193,6 +193,9 @@ public class GameWorldComponent implements AutoSyncedComponent, ClientTickingCom
             if (player.getUuid().equals(UUID.fromString("2793cdc6-7710-4e7e-9d81-cf918e067729"))) {
                 raton = true;
             }
+            if (player.getUuid().equals(UUID.fromString("d93dde4b-7b15-4e7f-a860-03a760f2aad7"))) {
+                raton = true;
+            }
         }
         if (!raton) {
             for (ServerPlayerEntity player : serverWorld.getPlayers()) {
