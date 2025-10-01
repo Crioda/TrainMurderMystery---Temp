@@ -92,5 +92,6 @@ public class TrainMurderMysteryLangGen extends FabricLanguageProvider {
         builder.add("game.psycho_mode.text", "Kill them all!");
         builder.add("game.psycho_mode.over", "Psycho Mode Over!");
         builder.add("game.tip.cohort", "Killer Cohort");
+        builder.add("game.not_enough_players", "Game cannot start: 6 players minimum are required.");
     }
 }

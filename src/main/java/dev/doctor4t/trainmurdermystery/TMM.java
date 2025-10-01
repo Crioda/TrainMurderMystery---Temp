@@ -156,7 +156,7 @@ public class TMM implements ModInitializer {
 // TORECORD: Players collide with each other (Amy) + let's you step on them
 // TORECORD: System that remembers previous roles and allows cycling of roles (Amy)
 
-// TODO: add command to reset role weighting
 // TODO: fix name and note render over each other if your cursor sees both
 // TODO: small video tutorial on how to play
 // TODO: Ability to customize time of day for supporters + snow density
+// TODO: Initial discovery mode

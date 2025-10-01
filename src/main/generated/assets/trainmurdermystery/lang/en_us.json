@@ -194,6 +194,7 @@
   "entity.trainmurdermystery.note": "Note",
   "entity.trainmurdermystery.player_body": "Player Body",
   "entity.trainmurdermystery.seat": "Seat",
+  "game.not_enough_players": "Game cannot start: 6 players minimum are required.",
   "game.player.stung": "You feel something stinging you in your sleep.",
   "game.psycho_mode.over": "Psycho Mode Over!",
   "game.psycho_mode.text": "Kill them all!",

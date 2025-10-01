@@ -75,8 +75,15 @@ public class GameFunctions {
     }
 
     public static void startGame(ServerWorld world) {
-        GameWorldComponent component = TMMComponents.GAME.get(world);
-        component.setGameStatus(GameWorldComponent.GameStatus.STARTING);
+        int playerCount = Math.toIntExact(world.getPlayers().stream().filter(serverPlayerEntity -> isPlayerAliveAndSurvival(serverPlayerEntity) && (GameConstants.READY_AREA.contains(serverPlayerEntity.getPos()))).count());
+        if (playerCount >= 6) {
+            GameWorldComponent component = TMMComponents.GAME.get(world);
+            component.setGameStatus(GameWorldComponent.GameStatus.STARTING);
+        } else {
+            for (ServerPlayerEntity player : world.getPlayers()) {
+                player.sendMessage(Text.translatable("game.not_enough_players"), true);
+            }
+        }
     }
 
     public static void stopGame(ServerWorld world) {
@@ -118,7 +125,7 @@ public class GameFunctions {
         }
 
         // teleport players to play area
-        List<ServerPlayerEntity> playerPool = world.getPlayers(serverPlayerEntity -> !serverPlayerEntity.isInCreativeMode() && !serverPlayerEntity.isSpectator() && (GameConstants.READY_AREA.contains(serverPlayerEntity.getPos())));
+        List<ServerPlayerEntity> playerPool = world.getPlayers(serverPlayerEntity -> isPlayerAliveAndSurvival(serverPlayerEntity) && (GameConstants.READY_AREA.contains(serverPlayerEntity.getPos())));
         for (ServerPlayerEntity player : playerPool) {
             Vec3d pos = player.getPos().add(GameConstants.PLAY_OFFSET);
             player.requestTeleport(pos.getX(), pos.getY(), pos.getZ());
@@ -148,7 +155,7 @@ public class GameFunctions {
         GameTimeComponent.KEY.get(world).reset();
 
         var roleSelector = ScoreboardRoleSelectorComponent.KEY.get(world.getScoreboard());
-        var killerCount = (int) Math.floor(playerPool.size() * .2f);
+        var killerCount = (int) Math.floor(playerPool.size() / 6f);
         roleSelector.assignKillers(world, gameComponent, playerPool, killerCount);
         roleSelector.assignVigilantes(world, gameComponent, playerPool, killerCount);
 
@@ -213,23 +220,31 @@ public class GameFunctions {
         for (var entity : world.getEntitiesByType(TMMEntities.FIRECRACKER, entity -> true)) entity.discard();
         for (var entity : world.getEntitiesByType(TMMEntities.NOTE, entity -> true)) entity.discard();
 
-        // reset all players to adventure mode, clear inventory and teleport to spawn
-        var teleportTarget = new TeleportTarget(world, GameConstants.SPAWN_POS, Vec3d.ZERO, 90, 0, TeleportTarget.NO_OP);
+        // reset all player data
         for (var player : world.getPlayers()) {
-            player.changeGameMode(GameMode.ADVENTURE);
-            // dismount all players as it can cause issues
             player.dismountVehicle();
             player.getInventory().clear();
-            player.teleportTo(teleportTarget);
             PlayerMoodComponent.KEY.get(player).reset();
             PlayerShopComponent.KEY.get(player).reset();
             PlayerPoisonComponent.KEY.get(player).reset();
             PlayerPsychoComponent.KEY.get(player).reset();
             PlayerNoteComponent.KEY.get(player).reset();
+
+            // teleport adventure players relative to spawn
+            if (GameFunctions.isPlayerAliveAndSurvival(player)) {
+                Vec3d pos = player.getPos().subtract(GameConstants.PLAY_OFFSET);
+                player.requestTeleport(pos.getX(), pos.getY(), pos.getZ());
+            } else {
+                // reset spectators to adventure mode,
+                var teleportTarget = new TeleportTarget(world, GameConstants.SPAWN_POS, Vec3d.ZERO, 90, 0, TeleportTarget.NO_OP);
+                player.changeGameMode(GameMode.ADVENTURE);
+                player.teleportTo(teleportTarget);
+            }
         }
-        GameTimeComponent.KEY.get(world).reset();
+
 
         // reset game component
+        GameTimeComponent.KEY.get(world).reset();
         var gameComponent = TMMComponents.GAME.get(world);
         gameComponent.resetKillerList();
         gameComponent.setGameStatus(GameWorldComponent.GameStatus.INACTIVE);
