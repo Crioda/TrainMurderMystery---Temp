@@ -163,6 +163,7 @@ public class RoundTextRenderer {
     }
 
     public static void startEnd() {
+        welcomeTime = 0;
         endTime = END_DURATION;
     }
 
