@@ -100,7 +100,7 @@ public class BeveragePlateBlockEntity extends BlockEntity {
                 itemStack.ifPresent(this.storedItems::add);
             }
         }
-        if (nbt.contains("poisoner")) this.poisoner = nbt.getString("poisoner");
+        this.poisoner = nbt.contains("poisoner") ? nbt.getString("poisoner") : null;
         this.plate = nbt.getBoolean("Drink") ? PlateType.DRINK : PlateType.FOOD;
     }
 
