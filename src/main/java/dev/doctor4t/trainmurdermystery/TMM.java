@@ -99,7 +99,7 @@ public class TMM implements ModInitializer {
     }
 }
 
-// TORECORD: Fixing the detective
+// Fixing the detective
 // TORECORD: New name display system to allow anyone to know player's names
 // TORECORD: Remove revolver bullet count but make detectives drop the gun on innocent kill
 //              to prevent detectives gunning down people and giving more weight to the choice as well as offer a chance to other players to make decisions
@@ -111,7 +111,7 @@ public class TMM implements ModInitializer {
 // TORECORD: Also removed cooldown in creative LMAO
 // done: Remove body bags so make player corpses turn into skeletons after some time (since the detective role is no longer really a role and depends on who carries the gun, it's hard to keep the body bag item)
 
-// TORECORD: Fixing the killer
+// Fixing the killer
 // TORECORD: Mood system shows up for the killer as well, custom mood icon indicating no effect, but here to suggest how to play along and fake tasks
 // TORECORD: Remove target system and make the win condition a kill count, turning him into a psycho
 // TORECORD: New name display shows "psycho cohort" for other psychos, and instinct now shows other psychos instead of targets, game recognizes game, allowing them to scheme together
@@ -143,7 +143,7 @@ public class TMM implements ModInitializer {
 // TORECORD: Timer for killer
 // TORECORD: Instinct shows you more info (items)
 
-// TORECORD: Fixing the passenger mood system
+// Fixing the passenger mood system
 // TORECORD: Better tasks: mood goes down gradually, completing tasks is a single action to bring it back up
 //  (new task system is more meant to make players vulnerable to the killer in a different way from splitting them up)
 // TORECORD: - Get a snack from restaurant task (food platter block + food items)
@@ -155,16 +155,15 @@ public class TMM implements ModInitializer {
 // TORECORD:    - Low mood: Dead bodies disappear after 10s + even more shake
 // TORECORD: Killer can see mood of players with instinct to gaslight them
 
-// TORECORD: Polish
-// done: Rearrange the train cars to prevent all POIs being separated by all the sleeping cars
+// Polish
+// TORECORD: Rearrange the train cars to prevent all POIs being separated by all the sleeping cars
 // TORECORD: Train chimney smoke
+// TORECORD: Player counter in lobby
 // TORECORD: Ringable horn, triggers game start in lobby and can be used as a meeting callout as everyone on the map can hear it
 // TORECORD: Players collide with each other + lets you step on them
 // TORECORD: System that remembers previous roles and allows cycling of roles
 // TORECORD: Game start and end messages
 // TORECORD: Initial discovery mode
-
-// TODO: small video tutorial on how to play
 
 // POST VIDEO
 // TODO: Ability to customize time of day for supporters + snow density

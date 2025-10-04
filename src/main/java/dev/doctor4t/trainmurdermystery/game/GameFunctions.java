@@ -161,7 +161,7 @@ public class GameFunctions {
         for (ServerPlayerEntity player : players) {
             player.changeGameMode(GameMode.ADVENTURE);
             Vec3d pos = player.getPos().add(GameConstants.PLAY_OFFSET);
-            player.requestTeleport(pos.getX(), pos.getY(), pos.getZ());
+            player.requestTeleport(pos.getX(), pos.getY()+1, pos.getZ());
         }
 
         // teleport non playing players
