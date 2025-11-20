@@ -1,4 +1,9 @@
 ------------------------------------------------------
+The Last Voyage of the Harpy Express 1.0.2 - 1.21.1
+------------------------------------------------------
+- Made eating and drinking sounds quieter
+
+------------------------------------------------------
 The Last Voyage of the Harpy Express 1.0.1 - 1.21.1
 ------------------------------------------------------
 - Fixed a crash when pressing tab in a world with no game previously
