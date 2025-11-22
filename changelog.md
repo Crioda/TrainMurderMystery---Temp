@@ -1,4 +1,14 @@
 ------------------------------------------------------
+The Last Voyage of the Harpy Express 1.1 - 1.21.1
+------------------------------------------------------
+- Added Sodium and Iris compatibility thanks to PunIsIntendeds! 🐀❤️
+- Removed the framerate limit lock
+- Changed role and text announcements code to be more moddable (if you wish to do custom roles or such)
+- Fixed Axiom editor respawning players, spectator OP players will no longer get reset
+- Fixed a crash that could happen on crowded servers
+- Creative players holding a bat will now turn psycho
+
+------------------------------------------------------
 The Last Voyage of the Harpy Express 1.0.3 - 1.21.1
 ------------------------------------------------------
 - Updated Ratatouille
