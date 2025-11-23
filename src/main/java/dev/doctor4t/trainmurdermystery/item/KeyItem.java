@@ -37,6 +37,8 @@ public class KeyItem extends Item implements AdventureUsable {
                     String roomName = loreComponent.lines().getFirst().getString();
                     if (player.isCreative() && player.isSneaking()) {
                         entity.setKeyName(roomName);
+                        Text lockDoorMessage = Text.of(Text.translatable("item.trainmurdermystery.key.lock_door") + roomName)
+                        player.s    endMessage(lockDoorMessage, true)
                         return ActionResult.SUCCESS;
                     }
                 }

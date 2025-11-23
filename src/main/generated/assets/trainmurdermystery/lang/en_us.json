@@ -289,6 +289,7 @@
   "item.trainmurdermystery.grenade": "Grenade",
   "item.trainmurdermystery.grenade.tooltip": "Right-click to throw, explodes on impact\nGood to clear groups of people, but be wary of the blast radius!\nSingle use, 5 minute cooldown",
   "item.trainmurdermystery.key": "Key",
+  "item.trainmurdermystery.key.lock_door": "Door locked to: ",
   "item.trainmurdermystery.knife": "Knife",
   "item.trainmurdermystery.knife.tooltip": "Right-click, hold for a second and get close to your victim\nAfter a kill, cannot be used for 1 minute\nAttack to knock back / push a player (no cooldown)",
   "item.trainmurdermystery.letter": "Letter",

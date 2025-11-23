@@ -143,11 +143,14 @@ public class SmallDoorBlock extends DoorPartBlock {
             if (entity.isBlasted()) {
                 return ActionResult.PASS;
             }
-
+            boolean requiresKey = !entity.getKeyName().isEmpty();
+            if (requiresKey) LoreComponent lore = player.getMainHandStack().get(DataComponentTypes.LORE);
             if (player.isCreative() || AllowPlayerOpenLockedDoor.EVENT.invoker().allowOpen(player)) {
+                if (player.isSneaking() && requiresKey) {
+                    player.sendMessage(Text.of(Text.translatable("item.trainmurdermystery.key.lock_door") + Text.of(lore)))
+                }
                 return open(state, world, entity, lowerPos);
             } else {
-                boolean requiresKey = !entity.getKeyName().isEmpty();
                 boolean hasLockpick = player.getMainHandStack().isOf(TMMItems.LOCKPICK);
                 boolean jammed = entity.isJammed();
 
@@ -156,7 +159,6 @@ public class SmallDoorBlock extends DoorPartBlock {
                 } else if (requiresKey && !jammed) {
                     if (player.getMainHandStack().isOf(TMMItems.CROWBAR)) return ActionResult.FAIL;
                     if (player.getMainHandStack().isOf(TMMItems.KEY) || hasLockpick) {
-                        LoreComponent lore = player.getMainHandStack().get(DataComponentTypes.LORE);
                         boolean isRightKey = lore != null && !lore.lines().isEmpty() && lore.lines().getFirst().getString().equals(entity.getKeyName());
                         if (isRightKey || hasLockpick) {
                             if (isRightKey)
